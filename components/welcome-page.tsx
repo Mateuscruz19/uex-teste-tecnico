@@ -3,7 +3,7 @@
 import { Box, Button, Container, Typography } from '@mui/material'
 import Link from 'next/link'
 import { Logo } from '@/components/shared/logo'
-
+// Implement your login logic here
 export default function WelcomePage() {
   return (
     <Container maxWidth="sm">
@@ -17,7 +17,7 @@ export default function WelcomePage() {
           textAlign: 'center',
           gap: 4,
         }}
-      >
+      >// Implement your login logic here
         <Logo width={400} height={160} />
         
         <Typography variant="h4" component="h1" gutterBottom>
