@@ -26,8 +26,7 @@ export default function LoginPage() {
     const password = formData.get('password')
 
     try {
-      // Implement your login logic here
-      // Implement your login logic here
+
       router.push('/contacts')
     } catch (err) {
       setError('Email ou senha inválidos')
