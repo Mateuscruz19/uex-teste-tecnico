@@ -18,7 +18,7 @@ export function LoginForm() {
   const [error, setError] = useState('')
   const router = useRouter()
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>()
-
+// Implement your login logic here
   const onSubmit = async (data: LoginFormData) => {
     try {
       const response = await fetch('/api/auth/login', {

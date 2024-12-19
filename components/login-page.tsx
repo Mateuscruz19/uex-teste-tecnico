@@ -13,10 +13,12 @@ import {
 } from '@mui/material'
 import { Logo } from '@/components/shared/logo'
 
+
+
 export default function LoginPage() {
   const [error, setError] = useState('')
   const router = useRouter()
-
+  
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
@@ -24,6 +26,7 @@ export default function LoginPage() {
     const password = formData.get('password')
 
     try {
+      // Implement your login logic here
       // Implement your login logic here
       router.push('/contacts')
     } catch (err) {
