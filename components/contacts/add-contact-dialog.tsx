@@ -1,5 +1,7 @@
+'use client'
+
 import { useState } from 'react'
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Box } from '@mui/material'
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Box, Autocomplete, List, ListItem, ListItemText } from '@mui/material'
 import type { Contact } from '@/types'
 
 interface AddContactDialogProps {
@@ -19,6 +21,7 @@ export function AddContactDialog({ open, onClose, onAddContact }: AddContactDial
   const [state, setState] = useState('')
   const [latitude, setLatitude] = useState<number | null>(null)
   const [longitude, setLongitude] = useState<number | null>(null)
+  const [addressSuggestions, setAddressSuggestions] = useState<string[]>([])
 
   const handleGeocode = async () => {
     const address = `${street}, ${number}, ${neighborhood}, ${city}, ${state}`
@@ -42,6 +45,24 @@ export function AddContactDialog({ open, onClose, onAddContact }: AddContactDial
     } catch (error) {
       console.error('Erro na requisição de geocodificação:', error)
       alert('Erro ao tentar calcular as coordenadas.')
+    }
+  }
+
+  const handleAddressChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStreet(e.target.value)
+
+    // Se o usuário começou a digitar um endereço, vamos buscar sugestões.
+    if (e.target.value.length > 3) {
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(e.target.value)}&key=${apiKey}`
+      )
+      const data = await response.json()
+
+      if (data.status === 'OK') {
+        const suggestions = data.results.map(result => result.formatted_address)
+        setAddressSuggestions(suggestions)
+      }
     }
   }
 
@@ -116,14 +137,20 @@ export function AddContactDialog({ open, onClose, onAddContact }: AddContactDial
             onChange={(e) => setPhone(e.target.value)}
             required
           />
-          <TextField
-            margin="dense"
-            label="Rua"
-            type="text"
-            fullWidth
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
-            required
+          <Autocomplete
+            freeSolo
+            options={addressSuggestions}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                margin="dense"
+                label="Rua"
+                fullWidth
+                value={street}
+                onChange={handleAddressChange}
+                required
+              />
+            )}
           />
           <TextField
             margin="dense"
