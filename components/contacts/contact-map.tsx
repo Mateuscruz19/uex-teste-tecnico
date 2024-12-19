@@ -1,82 +1,39 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
 import { Box, Alert, CircularProgress } from '@mui/material'
 import type { Contact } from '@/types'
 
-export default function ContactMap() {
-  const [contacts, setContacts] = useState<Contact[]>([])
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+export default function ContactMap({ contacts, selectedContact }: { contacts: Contact[], selectedContact: Contact | null }) {
   const [loadError, setLoadError] = useState<string>('')
-  const [isLoading, setIsLoading] = useState(true)
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
-  useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        setIsLoading(true)
-        const response = await fetch('/api/contacts')
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        const data = await response.json()
-        setContacts(data)
-      } catch (error) {
-        console.error('Failed to fetch contacts:', error)
-        setLoadError('Failed to load contacts. Please try again later.')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchContacts()
-  }, [])
-
-  if (!apiKey) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Alert severity="error">
-          Google Maps API key is not configured. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your environment variables.
-        </Alert>
-      </Box>
-    )
-  }
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
-
-  if (loadError) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Alert severity="error">{loadError}</Alert>
-      </Box>
-    )
-  }
+  // Se o contato foi selecionado, centraliza o mapa na localização dele
+  const center = selectedContact 
+    ? { lat: selectedContact.address.latitude, lng: selectedContact.address.longitude }
+    : { lat: -23.5505, lng: -46.6333 }  // Default: São Paulo
 
   return (
-    <LoadScript googleMapsApiKey={apiKey}>
-      <GoogleMap
-        mapContainerStyle={{ width: '100%', height: '100vh' }}
-        center={{ lat: -23.5505, lng: -46.6333 }} // São Paulo
-        zoom={10}
-      >
-        {contacts.map((contact) => (
-          <Marker
-            key={contact.id}
-            position={{
-              lat: contact.address.latitude,
-              lng: contact.address.longitude
-            }}
-            onClick={() => setSelectedContact(contact)}
-          />
-        ))}
-      </GoogleMap>
-    </LoadScript>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+        <GoogleMap
+          mapContainerStyle={{ width: '100%', height: '100%' }}
+          center={center}
+          zoom={15}
+        >
+          {contacts.map((contact) => (
+            <Marker
+              key={contact.id}
+              position={{ lat: contact.address.latitude, lng: contact.address.longitude }}
+            />
+          ))}
+        </GoogleMap>
+      </LoadScript>
+      {selectedContact && (
+        <Box sx={{ p: 2, position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'white' }}>
+          <h4>{selectedContact.name}</h4>
+          <p>{selectedContact.address.street}, {selectedContact.address.number}, {selectedContact.address.city} - {selectedContact.address.state}</p>
+        </Box>
+      )}
+      {loadError && <Alert severity="error">{loadError}</Alert>}
+    </Box>
   )
 }
-

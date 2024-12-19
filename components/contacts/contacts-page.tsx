@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
 import { useState, useEffect } from 'react'
-import { Box, Container, Typography, Button } from '@mui/material'
-import { Add as AddIcon, Logout as LogoutIcon } from '@mui/icons-material'
+import { Box, Container, Typography, Button, Grid } from '@mui/material'
+import { Add as AddIcon, Logout as LogoutIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { ContactList } from './contact-list'
 import ContactMap from './contact-map'
 import { Logo } from '../shared/logo'
@@ -12,12 +12,10 @@ import type { Contact } from '@/types'
 import Link from 'next/link'
 
 interface ContactMapProps {
-
   contacts: Contact[]
-
   selectedContact: Contact | null
-
 }
+
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
@@ -46,31 +44,51 @@ export default function ContactsPage() {
   }
 
   const handleLogout = () => {
-    
+    // Ação de logout
   }
+
   return (
     <Container maxWidth={false} disableGutters>
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
+        <Box
+          sx={{
+            p: 2,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: 1,
+            borderColor: 'divider',
+          }}
+        >
           <Logo width={100} height={40} />
-          <Typography variant="h6" component="h1">
+          <Typography variant="h6" component="h1" sx={{ flexGrow: 1, textAlign: 'center' }}>
             Gerenciador de Contatos
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setIsAddDialogOpen(true)}
-          >
-            Adicionar Contato
-          </Button>
-          <Button
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setIsAddDialogOpen(true)}
+            >
+              Adicionar Contato
+            </Button>
+            <Button
               variant="contained"
               color="secondary"
               startIcon={<LogoutIcon />}
-              onClick={handleLogout} // Ação de logout
+              onClick={handleLogout}
             >
               Sair
             </Button>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              Excluir Conta
+            </Button>
+          </Box>
         </Box>
         <Box sx={{ display: 'flex', flexGrow: 1 }}>
           <ContactList
@@ -100,4 +118,3 @@ export default function ContactsPage() {
     </Container>
   )
 }
-

@@ -1,20 +1,19 @@
-'use client'
-
 import { useState } from 'react'
 import { List, ListItem, ListItemText, TextField, Paper, IconButton, ListItemSecondaryAction } from '@mui/material'
-import { Delete as DeleteIcon } from '@mui/icons-material'
+import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'
 import type { Contact } from '@/types'
 
 interface ContactListProps {
   contacts: Contact[]
   onSelectContact: (contact: Contact) => void
   onDeleteContact: () => void
+  onUpdateLocation: (contactId: string) => void // Nova função para atualizar a localização
 }
 
-export function ContactList({ contacts, onSelectContact, onDeleteContact }: ContactListProps) {
+export function ContactList({ contacts, onSelectContact, onDeleteContact, onUpdateLocation }: ContactListProps) {
   const [search, setSearch] = useState('')
 
-  const filteredContacts = contacts.filter(contact => 
+  const filteredContacts = contacts.filter(contact =>
     contact.name.toLowerCase().includes(search.toLowerCase()) ||
     contact.cpf.includes(search)
   )
@@ -26,7 +25,7 @@ export function ContactList({ contacts, onSelectContact, onDeleteContact }: Cont
         label="Buscar contatos"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        sx={{ p: 2 }}
+        sx={{ padding: '12px' }} // Ajustando o padding para dar mais espaçamento
       />
       <List>
         {filteredContacts.map((contact) => (
@@ -37,9 +36,14 @@ export function ContactList({ contacts, onSelectContact, onDeleteContact }: Cont
           >
             <ListItemText
               primary={contact.name}
-              secondary={contact.cpf}
+              secondary={`${contact.cpf} - ${contact.address.street}, ${contact.address.number}, ${contact.address.city}`}
             />
             <ListItemSecondaryAction>
+              {/* Botão para Alterar Localização */}
+              <IconButton edge="end" aria-label="edit" onClick={() => onUpdateLocation(contact.id)}>
+                <EditIcon />
+              </IconButton>
+              {/* Botão para Excluir Contato */}
               <IconButton edge="end" aria-label="delete" onClick={onDeleteContact}>
                 <DeleteIcon />
               </IconButton>
@@ -50,4 +54,3 @@ export function ContactList({ contacts, onSelectContact, onDeleteContact }: Cont
     </Paper>
   )
 }
-

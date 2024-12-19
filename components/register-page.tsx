@@ -30,8 +30,7 @@ export default function RegisterPage() {
     }
 
     try {
-      // Implement your registration logic here
-      // Implement your login logic here
+
       router.push('/contacts')
     } catch (err) {
       setError('Erro ao criar conta')
