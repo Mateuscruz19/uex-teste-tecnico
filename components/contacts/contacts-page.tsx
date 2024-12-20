@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, Container, Typography, Button } from '@mui/material';
+import { Box, Container, Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { Add as AddIcon, Logout as LogoutIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { ContactList } from './contact-list';
 import ContactMap from './contact-map';
@@ -12,26 +12,20 @@ import { DeleteContactDialog } from './delete-contact-dialog';
 import { Contact } from '@/types';
 import Link from 'next/link';
 
-interface ContactMapProps {
-  contacts: Contact[];
-  selectedContact: Contact | null;
-}
-
 export default function ContactsPage() {
   const router = useRouter();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false); // Diálogo de confirmação
 
   useEffect(() => {
-    // Verifica se o token existe no localStorage
     const tokenFromStorage = localStorage.getItem('authToken');
     if (!tokenFromStorage) {
       router.push('/'); // Redireciona para a página de login se o token não estiver presente
     }
 
-    // Busca os contatos da API
     const fetchContacts = async () => {
       const token = localStorage.getItem('authToken');
       if (!token) {
@@ -43,18 +37,19 @@ export default function ContactsPage() {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Passa o token no cabeçalho da requisição
+          'Authorization': `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         const data = await response.json();
-        setContacts(data); // Armazena os contatos no estado
+        setContacts(data);
       } else {
         console.error('Erro ao buscar contatos:', response.status);
       }
     };
-    fetchContacts(); // Chama a função para buscar os contatos
+
+    fetchContacts();
   }, [router]);
 
   const handleAddContact = (newContact: Contact) => {
@@ -69,9 +64,31 @@ export default function ContactsPage() {
   };
 
   const handleLogout = () => {
-    // Ação de logout: remove o token e redireciona para a página de login
     localStorage.removeItem('authToken');
     router.push('/'); // Redireciona para a página de login
+  };
+
+  const handleDeleteAccount = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.error('Token não encontrado!');
+      return;
+    }
+
+    const response = await fetch('http://localhost:5160/api/user/delete-account', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      localStorage.removeItem('authToken'); // Remove o token
+      router.push('/'); // Redireciona para a página de login
+    } else {
+      console.error('Erro ao excluir a conta:', response.status);
+    }
   };
 
   return (
@@ -113,11 +130,9 @@ export default function ContactsPage() {
               variant="contained"
               color="error"
               startIcon={<DeleteIcon />}
-              onClick={() => setIsDeleteDialogOpen(true)}
+              onClick={() => setIsConfirmDeleteOpen(true)}
             >
-              <Link href="/" passHref>
-                Excluir Conta
-              </Link>
+              Excluir Conta
             </Button>
           </Box>
         </Box>
@@ -147,6 +162,23 @@ export default function ContactsPage() {
         onDeleteContact={() => handleDeleteContact(selectedContact?.id || '')}
         contactName={selectedContact?.name || ''}
       />
+      <Dialog
+        open={isConfirmDeleteOpen}
+        onClose={() => setIsConfirmDeleteOpen(false)}
+      >
+        <DialogTitle>Confirmar Exclusão</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza de que deseja excluir sua conta? Essa ação é irreversível.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsConfirmDeleteOpen(false)}>Cancelar</Button>
+          <Button color="error" onClick={handleDeleteAccount}>
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

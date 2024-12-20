@@ -60,7 +60,16 @@ export function AddContactDialog({ open, onClose, onAddContact }: AddContactDial
       const data = await response.json()
 
       if (data.status === 'OK') {
-        const suggestions = data.results.map(result => result.formatted_address)
+        interface GeocodeResult {
+          formatted_address: string;
+        }
+
+        interface GeocodeResponse {
+          status: string;
+          results: GeocodeResult[];
+        }
+
+        const suggestions: string[] = (data as GeocodeResponse).results.map((result: GeocodeResult) => result.formatted_address);
         setAddressSuggestions(suggestions)
       }
     }
