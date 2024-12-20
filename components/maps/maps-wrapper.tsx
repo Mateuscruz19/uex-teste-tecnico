@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 import { Box, Alert, CircularProgress } from '@mui/material'
 
@@ -19,16 +17,17 @@ export function MapsWrapper({ children }: MapsWrapperProps) {
       return
     }
 
-    // Check if Google Maps API is loaded
+    // Função para verificar se o Google Maps foi carregado
     const checkGoogleMapsLoaded = () => {
       if (window.google && window.google.maps) {
         setIsLoading(false)
       } else {
         setError('Failed to load Google Maps')
+        setIsLoading(false)
       }
     }
 
-    // Add listener for Google Maps script load error
+    // Adiciona um listener para erro ao carregar o script da API
     const script = document.querySelector('script[src*="maps.googleapis.com/maps/api"]')
     if (script) {
       script.addEventListener('error', () => {
@@ -37,10 +36,11 @@ export function MapsWrapper({ children }: MapsWrapperProps) {
       })
     }
 
-    // Check after a timeout to ensure the API had time to load
+    // Tenta verificar se o Google Maps está carregado após 1 segundo
     setTimeout(checkGoogleMapsLoaded, 1000)
   }, [apiKey])
 
+  // Exibe um erro se não carregar o mapa ou se houver erro
   if (error) {
     return (
       <Box sx={{ p: 2 }}>
@@ -49,6 +49,7 @@ export function MapsWrapper({ children }: MapsWrapperProps) {
     )
   }
 
+  // Exibe um carregando enquanto o mapa não estiver pronto
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -59,4 +60,3 @@ export function MapsWrapper({ children }: MapsWrapperProps) {
 
   return <>{children}</>
 }
-

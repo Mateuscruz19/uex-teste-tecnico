@@ -12,73 +12,16 @@ import {
   Alert,
 } from '@mui/material'
 import { Logo } from '@/components/shared/logo'
+import { useLogin } from '@/hooks/useLogin'
 
 export default function LoginPage() {
-  const [error, setError] = useState('')
-  const router = useRouter()
-
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const { error, login } = useLogin()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
-
-    // Validação de campos obrigatórios
-    if (!email || !password) {
-      setError('Por favor, preencha todos os campos.')
-      return
-    }
-
-    // Validação de e-mail
-    if (!isValidEmail(email)) {
-      setError('Por favor, insira um e-mail válido.')
-      return
-    }
-
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5160'}/api/user/login`
-    const requestBody = {
-      email,
-      password,
-    }
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        const token = data.Token
-
-        // Armazena o token no localStorage (opcional)
-        localStorage.setItem('authToken', token)
-
-        setError('')
-        router.push('/contacts') // Redireciona para a página de contatos
-      } else {
-        const data = await response.json()
-
-        // Exibe uma mensagem específica baseada no retorno da API
-        if (data.details) {
-          setError(data.details) // Mensagem específica fornecida pela API
-        } else if (data.message) {
-          setError(data.message) // Mensagem genérica fornecida pela API
-        } else {
-          setError('Erro ao fazer login. Tente novamente.') // Mensagem fallback
-        }
-      }
-    } catch (err) {
-      setError('Erro ao se comunicar com o servidor. Tente novamente mais tarde.')
-    }
+    login(email, password) // Chama a função de login do hook
   }
 
   return (
@@ -107,6 +50,8 @@ export default function LoginPage() {
             id="email"
             label="Email"
             name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)} // Atualiza o estado do email
             autoComplete="email"
             autoFocus
           />
@@ -118,6 +63,8 @@ export default function LoginPage() {
             label="Senha"
             type="password"
             id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)} // Atualiza o estado da senha
             autoComplete="current-password"
           />
           {error && (
