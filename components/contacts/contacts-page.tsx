@@ -1,56 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { Box, Container, Typography, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { Add as AddIcon, Logout as LogoutIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 import { ContactList } from './contact-list';
 import ContactMap from './contact-map';
-import { Logo } from '../shared/logo';
 import { AddContactDialog } from './add-contact-dialog';
 import { DeleteContactDialog } from './delete-contact-dialog';
+import { useContacts } from '@/hooks/useContacts';
+import { useAccount } from '@/hooks/useAccount';
 import { Contact } from '@/types';
-import Link from 'next/link';
 
 export default function ContactsPage() {
   const router = useRouter();
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const { contacts, setContacts, error } = useContacts();
+  const { logout, deleteAccount } = useAccount();
+
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false); // Diálogo de confirmação
-
-  useEffect(() => {
-    const tokenFromStorage = localStorage.getItem('authToken');
-    if (!tokenFromStorage) {
-      router.push('/'); // Redireciona para a página de login se o token não estiver presente
-    }
-
-    const fetchContacts = async () => {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        console.error('Token não encontrado!');
-        return;
-      }
-
-      const response = await fetch('http://localhost:5160/api/contact', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setContacts(data);
-      } else {
-        console.error('Erro ao buscar contatos:', response.status);
-      }
-    };
-
-    fetchContacts();
-  }, [router]);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
 
   const handleAddContact = (newContact: Contact) => {
     setContacts([...contacts, newContact]);
@@ -63,33 +33,18 @@ export default function ContactsPage() {
     setIsDeleteDialogOpen(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    router.push('/'); // Redireciona para a página de login
-  };
-
-  const handleDeleteAccount = async () => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      console.error('Token não encontrado!');
-      return;
-    }
-
-    const response = await fetch('http://localhost:5160/api/user/delete-account', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (response.ok) {
-      localStorage.removeItem('authToken'); // Remove o token
-      router.push('/'); // Redireciona para a página de login
-    } else {
-      console.error('Erro ao excluir a conta:', response.status);
+  const confirmDeleteAccount = async () => {
+    const success = await deleteAccount();
+    if (!success) {
+      console.error('Erro ao excluir a conta.');
     }
   };
+
+  if (error) {
+    console.error(error);
+    router.push('/'); // Redireciona para a página de login em caso de erro
+    return null;
+  }
 
   return (
     <Container maxWidth={false} disableGutters>
@@ -104,34 +59,17 @@ export default function ContactsPage() {
             borderColor: 'divider',
           }}
         >
-          <Link href="/" passHref>
-            <Logo width={100} height={40} />
-          </Link>
           <Typography variant="h6" component="h1" sx={{ flexGrow: 1, textAlign: 'center' }}>
             Gerenciador de Contatos
           </Typography>
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setIsAddDialogOpen(true)}
-            >
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setIsAddDialogOpen(true)}>
               Adicionar Contato
             </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              startIcon={<LogoutIcon />}
-              onClick={handleLogout}
-            >
+            <Button variant="contained" color="secondary" startIcon={<LogoutIcon />} onClick={logout}>
               Sair
             </Button>
-            <Button
-              variant="contained"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={() => setIsConfirmDeleteOpen(true)}
-            >
+            <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => setIsConfirmDeleteOpen(true)}>
               Excluir Conta
             </Button>
           </Box>
@@ -144,10 +82,7 @@ export default function ContactsPage() {
             onUpdateContact={() => {}}
           />
           <Box sx={{ flexGrow: 1 }}>
-            <ContactMap
-              contacts={contacts}
-              selectedContact={selectedContact}
-            />
+            <ContactMap contacts={contacts} selectedContact={selectedContact} />
           </Box>
         </Box>
       </Box>
@@ -162,10 +97,7 @@ export default function ContactsPage() {
         onDeleteContact={() => handleDeleteContact(selectedContact?.id || '')}
         contactName={selectedContact?.name || ''}
       />
-      <Dialog
-        open={isConfirmDeleteOpen}
-        onClose={() => setIsConfirmDeleteOpen(false)}
-      >
+      <Dialog open={isConfirmDeleteOpen} onClose={() => setIsConfirmDeleteOpen(false)}>
         <DialogTitle>Confirmar Exclusão</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -174,7 +106,7 @@ export default function ContactsPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsConfirmDeleteOpen(false)}>Cancelar</Button>
-          <Button color="error" onClick={handleDeleteAccount}>
+          <Button color="error" onClick={confirmDeleteAccount}>
             Confirmar
           </Button>
         </DialogActions>

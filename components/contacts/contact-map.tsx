@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react'
-import { GoogleMap, LoadScript } from '@react-google-maps/api'
-import { Box, Alert, CircularProgress } from '@mui/material'
-import { Contact } from '@/types'
-
-// Importando o Marker
-import { Marker } from '@react-google-maps/api'
+import { useState } from 'react';
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { Box, Alert, CircularProgress } from '@mui/material';
+import { Contact } from '@/types';
 
 export default function ContactMap({ contacts, selectedContact }: { contacts: Contact[], selectedContact: Contact | null }) {
-  const [loadError, setLoadError] = useState<string>('')
+  const [loadError, setLoadError] = useState<string>('');
 
-  const center = selectedContact 
-    ? { lat: selectedContact.address.latitude, lng: selectedContact.address.longitude }
-    : { lat: -23.5505, lng: -46.6333 }  // Default: São Paulo
+  // Garantir que as coordenadas sejam números
+  const center = selectedContact
+    ? {
+        lat: parseFloat(selectedContact.address.latitude.toString()),
+        lng: parseFloat(selectedContact.address.longitude.toString())
+      }
+    : { lat: -23.5505, lng: -46.6333 };  // Default: São Paulo
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -29,7 +30,10 @@ export default function ContactMap({ contacts, selectedContact }: { contacts: Co
           {contacts.map((contact) => (
             <Marker
               key={contact.id}
-              position={{ lat: contact.address.latitude, lng: contact.address.longitude }}
+              position={{
+                lat: parseFloat(contact.address.latitude.toString()), 
+                lng: parseFloat(contact.address.longitude.toString())
+              }}
               label={{ text: contact.name, color: 'red' }}  // Exemplo de conteúdo customizado
             />
           ))}
@@ -47,5 +51,5 @@ export default function ContactMap({ contacts, selectedContact }: { contacts: Co
       {/* Exibe erro caso não consiga carregar o mapa */}
       {loadError && <Alert severity="error">{loadError}</Alert>}
     </Box>
-  )
+  );
 }
