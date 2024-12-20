@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Box, Container, Typography, Button, Grid } from '@mui/material'
 import { Add as AddIcon, Logout as LogoutIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { ContactList } from './contact-list'
@@ -8,7 +9,7 @@ import ContactMap from './contact-map'
 import { Logo } from '../shared/logo'
 import { AddContactDialog } from './add-contact-dialog'
 import { DeleteContactDialog } from './delete-contact-dialog'
-import type { Contact } from '@/types'
+import { Contact } from '@/types'
 import Link from 'next/link'
 
 interface ContactMapProps {
@@ -17,20 +18,29 @@ interface ContactMapProps {
 }
 
 export default function ContactsPage() {
+  const router = useRouter()
   const [contacts, setContacts] = useState<Contact[]>([])
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   useEffect(() => {
-    // Fetch contacts from API
+    // Verifica se o token existe no localStorage
+    const token = localStorage.getItem('authToken')
+    if (!token) {
+      router.push('/') // Redireciona para a página de login se o token não estiver presente
+    } else {
+      console.log('Token JWT:', token) // Exibe o token no console
+    }
+
+    // Busca os contatos da API
     const fetchContacts = async () => {
       const response = await fetch('/api/contacts')
       const data = await response.json()
       setContacts(data)
     }
     fetchContacts()
-  }, [])
+  }, [router])
 
   const handleAddContact = (newContact: Contact) => {
     setContacts([...contacts, newContact])
@@ -44,7 +54,9 @@ export default function ContactsPage() {
   }
 
   const handleLogout = () => {
-    // Ação de logout
+    // Ação de logout: remove o token e redireciona para a página de login
+    localStorage.removeItem('authToken')
+    router.push('/')
   }
 
   return (
@@ -80,9 +92,7 @@ export default function ContactsPage() {
               startIcon={<LogoutIcon />}
               onClick={handleLogout}
             >
-              <Link href="/" passHref>
-                Sair
-              </Link>
+              Sair
             </Button>
             <Button
               variant="contained"
@@ -100,9 +110,9 @@ export default function ContactsPage() {
           <ContactList
             contacts={contacts}
             onSelectContact={setSelectedContact}
-            onDeleteContact={() => setIsDeleteDialogOpen(true)} onUpdateContact={function (updatedContact: Contact): void {
-              throw new Error('Function not implemented.')
-            } }          />
+            onDeleteContact={() => setIsDeleteDialogOpen(true)}
+            onUpdateContact={() => {}}
+          />
           <Box sx={{ flexGrow: 1 }}>
             <ContactMap
               contacts={contacts}
