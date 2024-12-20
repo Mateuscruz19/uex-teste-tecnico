@@ -1,6 +1,5 @@
-﻿# uex-teste-tecnico
-![image](https://github.com/user-attachments/assets/2c072745-5f11-4726-bc58-cde2094c111e)
 # Sistema de Cadastro de Contatos
+![image](https://github.com/user-attachments/assets/2c072745-5f11-4726-bc58-cde2094c111e)
 
 ## 📝 Descrição do Projeto
 
