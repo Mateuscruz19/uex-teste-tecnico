@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import { useState, useEffect } from 'react'
 import { Box, Container, Typography, Button, Grid } from '@mui/material'
@@ -60,7 +60,9 @@ export default function ContactsPage() {
             borderColor: 'divider',
           }}
         >
-          <Logo width={100} height={40} />
+          <Link href="/" passHref>
+            <Logo width={100} height={40} />
+          </Link>
           <Typography variant="h6" component="h1" sx={{ flexGrow: 1, textAlign: 'center' }}>
             Gerenciador de Contatos
           </Typography>
@@ -78,7 +80,9 @@ export default function ContactsPage() {
               startIcon={<LogoutIcon />}
               onClick={handleLogout}
             >
-              Sair
+              <Link href="/" passHref>
+                Sair
+              </Link>
             </Button>
             <Button
               variant="contained"
@@ -86,7 +90,9 @@ export default function ContactsPage() {
               startIcon={<DeleteIcon />}
               onClick={() => setIsDeleteDialogOpen(true)}
             >
-              Excluir Conta
+              <Link href="/" passHref>
+                Excluir Conta
+              </Link>
             </Button>
           </Box>
         </Box>
