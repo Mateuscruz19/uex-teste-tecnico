@@ -17,7 +17,7 @@ import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'
 import type { Contact } from '@/types'
 
 interface ContactListProps {
-  contacts: Contact[]
+  contacts: Contact[] | null | undefined
   onSelectContact: (contact: Contact) => void
   onDeleteContact: (contactId: string) => void
   onUpdateContact: (updatedContact: Contact) => void
@@ -62,9 +62,12 @@ export function ContactList({
     closeEditDialog()
   }
 
-  const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(search.toLowerCase()) || contact.cpf.includes(search)
-  )
+  // Filtra contatos com base na pesquisa
+  const filteredContacts = contacts
+    ? contacts.filter(contact =>
+        contact.name.toLowerCase().includes(search.toLowerCase()) || contact.cpf.includes(search)
+      )
+    : []
 
   return (
     <Paper sx={{ width: 300, height: '100%', overflowY: 'auto' }}>
@@ -76,22 +79,32 @@ export function ContactList({
         sx={{ padding: '12px' }}
       />
       <List>
-        {filteredContacts.map((contact) => (
-          <ListItem key={contact.id} button onClick={() => onSelectContact(contact)}>
-            <ListItemText
-              primary={contact.name}
-              secondary={`${contact.cpf} - ${contact.address.street}, ${contact.address.number}, ${contact.address.city}`}
-            />
-            <ListItemSecondaryAction>
-              <IconButton edge="end" aria-label="edit" onClick={() => openEditDialog(contact)}>
-                <EditIcon />
-              </IconButton>
-              <IconButton edge="end" aria-label="delete" onClick={() => onDeleteContact(contact.id)}>
-                <DeleteIcon />
-              </IconButton>
-            </ListItemSecondaryAction>
+        {filteredContacts.length === 0 && contacts ? (
+          <ListItem>
+            <ListItemText primary="Lista vazia" />
           </ListItem>
-        ))}
+        ) : filteredContacts.length === 0 ? (
+          <ListItem>
+            <ListItemText primary="Erro não sei" />
+          </ListItem>
+        ) : (
+          filteredContacts.map((contact) => (
+            <ListItem key={contact.id} button onClick={() => onSelectContact(contact)}>
+              <ListItemText
+                primary={contact.name}
+                secondary={`${contact.cpf} - ${contact.address.street}, ${contact.address.number}, ${contact.address.city}`}
+              />
+              <ListItemSecondaryAction>
+                <IconButton edge="end" aria-label="edit" onClick={() => openEditDialog(contact)}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton edge="end" aria-label="delete" onClick={() => onDeleteContact(contact.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              </ListItemSecondaryAction>
+            </ListItem>
+          ))
+        )}
       </List>
 
       {/* Diálogo de Edição */}

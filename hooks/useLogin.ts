@@ -38,10 +38,16 @@ export const useLogin = () => {
 
       if (response.ok) {
         const data = await response.json()
-        const token = data.Token
+        const token = data.token
 
         // Armazena o token no localStorage (opcional)
-        localStorage.setItem('authToken', token)
+       // Exemplo de armazenamento do token após o login
+       console.log('Token recebido:', token);  // Exibe o token no console
+       console.log(data);  // Exibe o objeto de resposta no console
+       localStorage.setItem('authToken', token);
+       localStorage.setItem('token', data);
+       console.log('Token armazenado:', localStorage.getItem('authToken'));  // Verifique se o token está sendo salvo corretamente
+
 
         setError('')
         router.push('/contacts') // Redireciona para a página de contatos

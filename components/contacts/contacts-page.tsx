@@ -1,63 +1,78 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Box, Container, Typography, Button, Grid } from '@mui/material'
-import { Add as AddIcon, Logout as LogoutIcon, Delete as DeleteIcon } from '@mui/icons-material'
-import { ContactList } from './contact-list'
-import ContactMap from './contact-map'
-import { Logo } from '../shared/logo'
-import { AddContactDialog } from './add-contact-dialog'
-import { DeleteContactDialog } from './delete-contact-dialog'
-import { Contact } from '@/types'
-import Link from 'next/link'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Box, Container, Typography, Button } from '@mui/material';
+import { Add as AddIcon, Logout as LogoutIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { ContactList } from './contact-list';
+import ContactMap from './contact-map';
+import { Logo } from '../shared/logo';
+import { AddContactDialog } from './add-contact-dialog';
+import { DeleteContactDialog } from './delete-contact-dialog';
+import { Contact } from '@/types';
+import Link from 'next/link';
 
 interface ContactMapProps {
-  contacts: Contact[]
-  selectedContact: Contact | null
+  contacts: Contact[];
+  selectedContact: Contact | null;
 }
 
 export default function ContactsPage() {
-  const router = useRouter()
-  const [contacts, setContacts] = useState<Contact[]>([])
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const router = useRouter();
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     // Verifica se o token existe no localStorage
-    const token = localStorage.getItem('authToken')
-    if (!token) {
-      router.push('/') // Redireciona para a página de login se o token não estiver presente
-    } else {
-      console.log('Token JWT:', token) // Exibe o token no console
+    const tokenFromStorage = localStorage.getItem('authToken');
+    if (!tokenFromStorage) {
+      router.push('/'); // Redireciona para a página de login se o token não estiver presente
     }
 
     // Busca os contatos da API
     const fetchContacts = async () => {
-      const response = await fetch('/api/contacts')
-      const data = await response.json()
-      setContacts(data)
-    }
-    fetchContacts()
-  }, [router])
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        console.error('Token não encontrado!');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5160/api/contact', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Passa o token no cabeçalho da requisição
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setContacts(data); // Armazena os contatos no estado
+      } else {
+        console.error('Erro ao buscar contatos:', response.status);
+      }
+    };
+    fetchContacts(); // Chama a função para buscar os contatos
+  }, [router]);
 
   const handleAddContact = (newContact: Contact) => {
-    setContacts([...contacts, newContact])
-    setIsAddDialogOpen(false)
-  }
+    setContacts([...contacts, newContact]);
+    setIsAddDialogOpen(false);
+  };
 
   const handleDeleteContact = (contactId: string) => {
-    setContacts(contacts.filter(contact => contact.id !== contactId))
-    setSelectedContact(null)
-    setIsDeleteDialogOpen(false)
-  }
+    setContacts(contacts.filter(contact => contact.id !== contactId));
+    setSelectedContact(null);
+    setIsDeleteDialogOpen(false);
+  };
 
   const handleLogout = () => {
     // Ação de logout: remove o token e redireciona para a página de login
-    localStorage.removeItem('authToken')
-    router.push('/')
-  }
+    localStorage.removeItem('authToken');
+    router.push('/'); // Redireciona para a página de login
+  };
 
   return (
     <Container maxWidth={false} disableGutters>
@@ -133,5 +148,5 @@ export default function ContactsPage() {
         contactName={selectedContact?.name || ''}
       />
     </Container>
-  )
+  );
 }
