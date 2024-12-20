@@ -13,23 +13,71 @@ import {
 } from '@mui/material'
 import { Logo } from '@/components/shared/logo'
 
-
-
 export default function LoginPage() {
   const [error, setError] = useState('')
   const router = useRouter()
-  
+
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    const email = formData.get('email')
-    const password = formData.get('password')
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+
+    // Validação de campos obrigatórios
+    if (!email || !password) {
+      setError('Por favor, preencha todos os campos.')
+      return
+    }
+
+    // Validação de e-mail
+    if (!isValidEmail(email)) {
+      setError('Por favor, insira um e-mail válido.')
+      return
+    }
+
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5160'}/api/user/login`
+    const requestBody = {
+      email,
+      password,
+    }
 
     try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      })
 
-      router.push('/contacts')
+      if (response.ok) {
+        const data = await response.json()
+        const token = data.Token
+
+        // Armazena o token no localStorage (opcional)
+        localStorage.setItem('authToken', token)
+
+        setError('')
+        router.push('/contacts') // Redireciona para a página de contatos
+      } else {
+        const data = await response.json()
+
+        // Exibe uma mensagem específica baseada no retorno da API
+        if (data.details) {
+          setError(data.details) // Mensagem específica fornecida pela API
+        } else if (data.message) {
+          setError(data.message) // Mensagem genérica fornecida pela API
+        } else {
+          setError('Erro ao fazer login. Tente novamente.') // Mensagem fallback
+        }
+      }
     } catch (err) {
-      setError('Email ou senha inválidos')
+      setError('Erro ao se comunicar com o servidor. Tente novamente mais tarde.')
     }
   }
 
@@ -45,7 +93,7 @@ export default function LoginPage() {
           gap: 4,
         }}
       >
-        <Logo width={400} height={160}/>
+        <Logo width={400} height={160} />
 
         <Typography variant="h5" component="h1">
           Login
@@ -97,4 +145,3 @@ export default function LoginPage() {
     </Container>
   )
 }
-

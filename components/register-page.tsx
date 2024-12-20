@@ -15,25 +15,88 @@ import { Logo } from '@/components/shared/logo'
 
 export default function RegisterPage() {
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const router = useRouter()
+
+  // Função para validar e-mail
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  // Função para validar senha
+  const isValidPassword = (password: string): boolean => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    return passwordRegex.test(password)
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    const email = formData.get('email')
-    const password = formData.get('password')
-    const confirmPassword = formData.get('confirmPassword')
+    const fullName = formData.get('name') as string
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+    const confirmPassword = formData.get('confirmPassword') as string
 
+    // Validação de campos obrigatórios
+    if (!fullName || !email || !password || !confirmPassword) {
+      setError('Todos os campos são obrigatórios')
+      return
+    }
+
+    // Validação de e-mail
+    if (!isValidEmail(email)) {
+      setError('Por favor, insira um e-mail válido')
+      return
+    }
+
+    // Validação de senha
+    if (!isValidPassword(password)) {
+      setError(
+        'A senha deve ter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais'
+      )
+      return
+    }
+
+    // Validação de confirmação de senha
     if (password !== confirmPassword) {
       setError('As senhas não coincidem')
       return
     }
 
-    try {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5160'}/api/user/register`
+    const requestBody = {
+      fullName,
+      email,
+      password,
+    }
 
-      router.push('/contacts')
+    console.log('API URL:', apiUrl)
+    console.log('Request Body:', requestBody)
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      if (response.ok) {
+        setSuccess('Cadastro realizado com sucesso!')
+        setError('')
+        setTimeout(() => {
+          router.push('/login') // Redireciona para login após sucesso
+        }, 2000)
+      } else {
+        const data = await response.json()
+        setError(data.message || 'Erro ao criar conta')
+        setSuccess('')
+      }
     } catch (err) {
-      setError('Erro ao criar conta')
+      setError('Erro ao se comunicar com o servidor')
+      setSuccess('')
     }
   }
 
@@ -49,7 +112,7 @@ export default function RegisterPage() {
           gap: 4,
         }}
       >
-        <Logo width={400} height={160}/>
+        <Logo width={400} height={160} />
 
         <Typography variant="h5" component="h1">
           Criar Conta
@@ -98,6 +161,11 @@ export default function RegisterPage() {
               {error}
             </Alert>
           )}
+          {success && (
+            <Alert severity="success" sx={{ mt: 2 }}>
+              {success}
+            </Alert>
+          )}
           <Button
             type="submit"
             fullWidth
@@ -118,4 +186,3 @@ export default function RegisterPage() {
     </Container>
   )
 }
-

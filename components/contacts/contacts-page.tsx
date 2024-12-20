@@ -100,8 +100,9 @@ export default function ContactsPage() {
           <ContactList
             contacts={contacts}
             onSelectContact={setSelectedContact}
-            onDeleteContact={() => setIsDeleteDialogOpen(true)}
-          />
+            onDeleteContact={() => setIsDeleteDialogOpen(true)} onUpdateContact={function (updatedContact: Contact): void {
+              throw new Error('Function not implemented.')
+            } }          />
           <Box sx={{ flexGrow: 1 }}>
             <ContactMap
               contacts={contacts}
