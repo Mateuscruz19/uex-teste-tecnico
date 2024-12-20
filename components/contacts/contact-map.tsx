@@ -1,7 +1,10 @@
-import { useState } from 'react'
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
+import { useState, useEffect } from 'react'
+import { GoogleMap, LoadScript } from '@react-google-maps/api'
 import { Box, Alert, CircularProgress } from '@mui/material'
-import type { Contact } from '@/types'
+import { Contact } from '@/types'
+
+// Importando o Marker
+import { Marker } from '@react-google-maps/api'
 
 export default function ContactMap({ contacts, selectedContact }: { contacts: Contact[], selectedContact: Contact | null }) {
   const [loadError, setLoadError] = useState<string>('')
@@ -22,10 +25,12 @@ export default function ContactMap({ contacts, selectedContact }: { contacts: Co
           center={center}
           zoom={15}
         >
+          {/* Usando o Marker */}
           {contacts.map((contact) => (
             <Marker
               key={contact.id}
               position={{ lat: contact.address.latitude, lng: contact.address.longitude }}
+              label={{ text: contact.name, color: 'red' }}  // Exemplo de conteúdo customizado
             />
           ))}
         </GoogleMap>
